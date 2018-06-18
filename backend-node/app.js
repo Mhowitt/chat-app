@@ -1,4 +1,7 @@
 const express = require("express");
+const socketio = require("socket.io");
+const path = require("path");
+const port = process.env.PORT || 8000;
 // const path = require("path");
 // const db = require("./db/knex");
 // const bodyParser = require("body-parser");
@@ -6,37 +9,21 @@ const express = require("express");
 
 const app = express();
 
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(bodyParser.json({ type: "*/*" }));
-
 //socket io stuff
-const socketio = require("socket.io");
-const server = require("http").createServer(app);
-const io = socketio(server);
 
-io.on("connection", socket => {
-  console.log("user connected");
+var server = require("http").createServer(app);
+var io = socketio(server);
 
-  socket.on("change color", color => {
-    console.log("Color changed to: ", color);
-    io.sockets.emit("change color", color);
-  });
+const socketManager = require("./socketManager");
 
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
+app.get("/", function(req, res) {
+  res.sendFile(path.join(__dirname, "../frontend-react/public/index.html"));
 });
 
-// app.get("/", (req, res) => res.json({ data: "hi" }));
+io.on("connection", socketManager);
 
-// app.use((err, req, res, next) =>
-//   res
-//     .status(err.status || 500)
-//     .json({ message: err.message || "Internal Server Error" })
-// );
-
-server.listen(8000, function() {
-  console.log("Listening on port 8000");
+server.listen(port, function() {
+  console.log("Listening on port ", port);
 });
 
-// module.exports = app;
+module.exports.io;
